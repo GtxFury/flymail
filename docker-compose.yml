@@ -8,8 +8,8 @@ services:
     container_name: flymail-server
     restart: unless-stopped
     ports:
-      - "3001:3001"
-      - "25:25"
+      - "${API_PORT:-3001}:3001"
+      - "${SMTP_PORT:-25}:25"
     volumes:
       - ./data:/app/packages/server/data
       - ./uploads:/app/packages/server/uploads
@@ -31,7 +31,7 @@ services:
     container_name: flymail-web
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "${WEB_PORT:-8080}:80"
     depends_on:
       - server
     networks:
