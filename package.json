@@ -1,0 +1,22 @@
+{
+  "name": "flymail",
+  "version": "1.0.0",
+  "description": "A modern email receiving system with custom domain support",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @flymail/server dev\" \"pnpm --filter @flymail/web dev\"",
+    "dev:server": "pnpm --filter @flymail/server dev",
+    "dev:web": "pnpm --filter @flymail/web dev",
+    "build": "pnpm --filter @flymail/server build && pnpm --filter @flymail/web build",
+    "db:push": "pnpm --filter @flymail/server db:push",
+    "db:generate": "pnpm --filter @flymail/server db:generate",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
