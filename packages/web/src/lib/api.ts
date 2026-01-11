@@ -146,3 +146,60 @@ export const emailsApi = {
 export const configApi = {
   get: () => request<{ mxHostname: string }>('/config'),
 };
+
+// Admin
+export interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  isAdmin: boolean;
+  isActive: boolean;
+  createdAt: string;
+  _count?: { domains: number };
+}
+
+export interface Settings {
+  id: string;
+  allowPublicRegister: boolean;
+}
+
+export interface SystemStats {
+  users: number;
+  domains: number;
+  addresses: number;
+  emails: number;
+}
+
+export const adminApi = {
+  // Users
+  listUsers: () => request<User[]>('/admin/users'),
+
+  createUser: (data: { email: string; password: string; name?: string; isAdmin?: boolean }) =>
+    request<User>('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateUser: (id: string, data: { name?: string; isAdmin?: boolean; isActive?: boolean; password?: string }) =>
+    request<User>(`/admin/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteUser: (id: string) =>
+    request<{ message: string }>(`/admin/users/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Settings
+  getSettings: () => request<Settings>('/admin/settings'),
+
+  updateSettings: (data: { allowPublicRegister?: boolean }) =>
+    request<Settings>('/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // Stats
+  getStats: () => request<SystemStats>('/admin/stats'),
+};

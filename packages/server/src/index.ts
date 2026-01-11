@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth.js';
 import { domainsRouter } from './routes/domains.js';
 import { addressesRouter } from './routes/addresses.js';
 import { emailsRouter } from './routes/emails.js';
+import { adminRouter } from './routes/admin.js';
 import { startSmtpServer } from './smtp/server.js';
 import { errorHandler } from './middleware/error.js';
 
@@ -36,6 +37,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/domains', domainsRouter);
 app.use('/api/addresses', addressesRouter);
 app.use('/api/emails', emailsRouter);
+app.use('/api/admin', adminRouter);
 
 // Error handler
 app.use(errorHandler);

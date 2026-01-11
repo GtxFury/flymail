@@ -19,10 +19,33 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+// Helper to get or create settings
+async function getSettings() {
+  let settings = await prisma.settings.findUnique({ where: { id: 'global' } });
+  if (!settings) {
+    settings = await prisma.settings.create({
+      data: { id: 'global', allowPublicRegister: true },
+    });
+  }
+  return settings;
+}
+
 // Register
 authRouter.post('/register', async (req, res, next) => {
   try {
     const { email, password, name } = registerSchema.parse(req.body);
+
+    // Check if this is the first user (will become admin)
+    const userCount = await prisma.user.count();
+    const isFirstUser = userCount === 0;
+
+    // If not first user, check if registration is allowed
+    if (!isFirstUser) {
+      const settings = await getSettings();
+      if (!settings.allowPublicRegister) {
+        throw new AppError(403, 'Registration is disabled');
+      }
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -31,8 +54,13 @@ authRouter.post('/register', async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name },
-      select: { id: true, email: true, name: true, createdAt: true },
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        isAdmin: isFirstUser, // First user becomes admin
+      },
+      select: { id: true, email: true, name: true, isAdmin: true, createdAt: true },
     });
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
@@ -58,6 +86,10 @@ authRouter.post('/login', async (req, res, next) => {
       throw new AppError(401, 'Invalid credentials');
     }
 
+    if (!user.isActive) {
+      throw new AppError(403, 'Account is disabled');
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       throw new AppError(401, 'Invalid credentials');
@@ -72,6 +104,7 @@ authRouter.post('/login', async (req, res, next) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        isAdmin: user.isAdmin,
         createdAt: user.createdAt,
       },
       token,
@@ -93,6 +126,7 @@ authRouter.get('/me', authMiddleware, async (req: AuthRequest, res, next) => {
         id: true,
         email: true,
         name: true,
+        isAdmin: true,
         createdAt: true,
         _count: {
           select: { domains: true },

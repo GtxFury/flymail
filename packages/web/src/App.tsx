@@ -9,10 +9,16 @@ import DashboardPage from '@/pages/dashboard';
 import DomainsPage from '@/pages/domains';
 import InboxPage from '@/pages/inbox';
 import SettingsPage from '@/pages/settings';
+import AdminPage from '@/pages/admin';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
   return token ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  return user?.isAdmin ? <>{children}</> : <Navigate to="/" replace />;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -53,6 +59,14 @@ export default function App() {
           <Route path="inbox" element={<InboxPage />} />
           <Route path="inbox/:addressId" element={<InboxPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
         </Route>
       </Routes>
       <Toaster />

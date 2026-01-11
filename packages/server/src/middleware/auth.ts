@@ -6,6 +6,7 @@ export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
+    isAdmin: boolean;
   };
 }
 
@@ -27,16 +28,31 @@ export async function authMiddleware(
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true },
+      select: { id: true, email: true, isAdmin: true, isActive: true },
     });
 
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    req.user = user;
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Account is disabled' });
+    }
+
+    req.user = { id: user.id, email: user.email, isAdmin: user.isAdmin };
     next();
   } catch {
     return res.status(401).json({ error: 'Invalid token' });
   }
+}
+
+export async function adminMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.user?.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
 }

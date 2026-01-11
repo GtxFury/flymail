@@ -23,6 +23,7 @@ import {
   Moon,
   Monitor,
   Languages,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ export default function Layout() {
     { to: '/domains', icon: Globe, label: t('nav.domains') },
     { to: '/inbox', icon: Mail, label: t('nav.inbox') },
     { to: '/settings', icon: Settings, label: t('nav.settings') },
+    ...(user?.isAdmin ? [{ to: '/admin', icon: Shield, label: t('admin.title') }] : []),
   ];
 
   const handleLogout = () => {

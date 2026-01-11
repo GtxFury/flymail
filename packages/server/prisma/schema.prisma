@@ -13,9 +13,16 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  isAdmin   Boolean  @default(false)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   domains   Domain[]
+}
+
+model Settings {
+  id                    String  @id @default("global")
+  allowPublicRegister   Boolean @default(true)
 }
 
 model Domain {
