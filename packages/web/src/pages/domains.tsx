@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ export default function DomainsPage() {
   const [selectedDomain, setSelectedDomain] = useState<any>(null);
   const [newDomain, setNewDomain] = useState('');
   const [newAddress, setNewAddress] = useState('');
+  const [isCatchAll, setIsCatchAll] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -81,6 +83,7 @@ export default function DomainsPage() {
       queryClient.invalidateQueries({ queryKey: ['addresses'] });
       setIsAddAddressOpen(false);
       setNewAddress('');
+      setIsCatchAll(false);
       toast({ title: t('addresses.addressCreated') });
     },
     onError: (error: Error) => {
@@ -325,7 +328,13 @@ export default function DomainsPage() {
       </Dialog>
 
       {/* Add Address Dialog */}
-      <Dialog open={isAddAddressOpen} onOpenChange={setIsAddAddressOpen}>
+      <Dialog open={isAddAddressOpen} onOpenChange={(open) => {
+        setIsAddAddressOpen(open);
+        if (!open) {
+          setNewAddress('');
+          setIsCatchAll(false);
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('addresses.title')}</DialogTitle>
@@ -334,31 +343,50 @@ export default function DomainsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="address">{t('auth.email')}</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="address"
-                  placeholder={t('addresses.addressPlaceholder')}
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
-                />
-                <span className="flex items-center text-muted-foreground">
-                  @{selectedDomain?.domain}
-                </span>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>{t('addresses.catchAllMode')}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t('addresses.catchAllDesc')}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t('addresses.catchAllHint')}
-              </p>
+              <Switch
+                checked={isCatchAll}
+                onCheckedChange={setIsCatchAll}
+              />
             </div>
+            {!isCatchAll && (
+              <div className="space-y-2">
+                <Label htmlFor="address">{t('auth.email')}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="address"
+                    placeholder={t('addresses.addressPlaceholder')}
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                  />
+                  <span className="flex items-center text-muted-foreground">
+                    @{selectedDomain?.domain}
+                  </span>
+                </div>
+              </div>
+            )}
+            {isCatchAll && (
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm font-medium">*@{selectedDomain?.domain}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('addresses.catchAllHint')}
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
               onClick={() => createAddressMutation.mutate({
-                localPart: newAddress,
+                localPart: isCatchAll ? '*' : newAddress,
                 domainId: selectedDomain?.id,
               })}
-              disabled={!newAddress || createAddressMutation.isPending}
+              disabled={(!isCatchAll && !newAddress) || createAddressMutation.isPending}
             >
               {createAddressMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('addresses.createAddress')}
