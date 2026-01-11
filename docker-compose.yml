@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   server:
     build:
@@ -11,7 +9,7 @@ services:
       - "${API_PORT:-3001}:3001"
       - "${SMTP_PORT:-25}:25"
     volumes:
-      - ./data:/app/packages/server/data
+      - ./data:/app/packages/server/prisma/data
       - ./uploads:/app/packages/server/uploads
     environment:
       - DATABASE_URL=file:./data/flymail.db
