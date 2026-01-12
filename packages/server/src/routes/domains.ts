@@ -14,7 +14,7 @@ domainsRouter.use(authMiddleware);
 const createDomainSchema = z.object({
   domain: z
     .string()
-    .regex(/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]\.[a-zA-Z]{2,}$/, 'Invalid domain format'),
+    .regex(/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/, 'Invalid domain format'),
 });
 
 // Get all domains for user
